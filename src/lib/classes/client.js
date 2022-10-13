@@ -1,4 +1,4 @@
-import { readdir } from 'node:fs/promises'
+import { access, readdir } from 'node:fs/promises'
 import { Client as DiscordClient, Collection } from 'discord.js'
 
 export class Client extends DiscordClient {
@@ -8,11 +8,16 @@ export class Client extends DiscordClient {
 		this.contextMenus = new Collection()
 	}
 
+	async isFolderExists (folder) {
+		return access(`src/controllers/${folder}`).then(() => true).catch(() => false) // eslint-disable-line
+	}
+
 	async importFiles (folder) {
 		return Promise.all((await readdir(`src/controllers/${folder}`)).map(v => import(`#src/controllers/${folder}/${v}`)))
 	}
 
 	async setEventControllers () {
+		if (!await this.isFolderExists('events')) return
 		const events = await this.importFiles('events').then(res => res.map(v => Object.keys(v).map(r => v[r])).flat(Infinity))
 
 		events.forEach(v => {
