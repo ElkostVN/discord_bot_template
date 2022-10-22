@@ -10,10 +10,17 @@ class MessageReactionAddEvent extends BaseEvent {
 
 export default new MessageReactionAddEvent({
 	name: 'messageReactionAdd',
-	controller: async function (member) {
+	controller: async function (messageReaction, user) {
 		if (!this.components)
 			this.components = await this.importComponents('message-reaction-add')
 
-		return Promise.all(this.components.map(async func => func(member)))
+		return Promise.all(this.components.map(async ({ condition, performer }) => {
+			if (
+				(typeof condition === 'function' && condition(messageReaction, user))
+				|| (typeof condition === 'boolean' && condition)
+			) return performer(messageReaction, user)
+
+			return null
+		}))
 	}
 })

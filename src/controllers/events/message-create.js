@@ -10,10 +10,17 @@ class MessageCreateEvent extends BaseEvent {
 
 export default new MessageCreateEvent({
 	name: 'messageCreate',
-	controller: async function (client) {
+	controller: async function (message) {
 		if (!this.components)
 			this.components = await this.importComponents('message-create')
 
-		return Promise.all(this.components.map(async func => func(client)))
+		return Promise.all(this.components.map(async ({ condition, performer }) => {
+			if (
+				(typeof condition === 'function' && condition(message))
+				|| (typeof condition === 'boolean' && condition)
+			) return performer(message)
+
+			return null
+		}))
 	}
 })

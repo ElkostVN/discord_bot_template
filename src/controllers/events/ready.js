@@ -14,6 +14,13 @@ export default new ReadyEvent({
 		if (!this.components)
 			this.components = await this.importComponents('ready')
 
-		return Promise.all(this.components.map(async func => func(client)))
+		return Promise.all(this.components.map(async ({ condition, performer }) => {
+			if (
+				(typeof condition === 'function' && condition(client))
+				|| (typeof condition === 'boolean' && condition)
+			) return performer(client)
+
+			return null
+		}))
 	}
 })

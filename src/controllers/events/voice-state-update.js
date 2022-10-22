@@ -10,10 +10,17 @@ class VoiceStateUpdateEvent extends BaseEvent {
 
 export default new VoiceStateUpdateEvent({
 	name: 'voiceStateUpdate',
-	controller: async function (client) {
+	controller: async function (oldState, newState) {
 		if (!this.components)
 			this.components = await this.importComponents('voice-state-update')
 
-		return Promise.all(this.components.map(async func => func(client)))
+		return Promise.all(this.components.map(async ({ condition, performer }) => {
+			if (
+				(typeof condition === 'function' && condition(oldState, newState))
+				|| (typeof condition === 'boolean' && condition)
+			) return performer(oldState, newState)
+
+			return null
+		}))
 	}
 })

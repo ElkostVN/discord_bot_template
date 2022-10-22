@@ -14,6 +14,13 @@ export default new GuildMemberAddEvent({
 		if (!this.components)
 			this.components = await this.importComponents('guild-member-add')
 
-		return Promise.all(this.components.map(async func => func(member)))
+		return Promise.all(this.components.map(async ({ condition, performer }) => {
+			if (
+				(typeof condition === 'function' && condition(member))
+				|| (typeof condition === 'boolean' && condition)
+			) return performer(member)
+
+			return null
+		}))
 	}
 })
