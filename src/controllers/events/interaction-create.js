@@ -99,7 +99,7 @@ export default new InteractionCreateEvent({
 	name: 'interactionCreate',
 	controller: async function (interaction) {
 		if (interaction.isCommand())
-			await interaction.deferReply()
+			await interaction.deferReply({ content: 'Interaction is processed', ephemeral: true })
 		else await interaction.deferUpdate()
 
 		if (!this.isComponentsLoaded())
