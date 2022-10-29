@@ -98,7 +98,9 @@ class InteractionCreateEvent extends BaseEvent {
 export default new InteractionCreateEvent({
 	name: 'interactionCreate',
 	controller: async function (interaction) {
-		await interaction.deferReply()
+		if (interaction.isCommand())
+			await interaction.deferReply()
+		else await interaction.deferUpdate()
 
 		if (!this.isComponentsLoaded())
 			await this.loadComponents()
