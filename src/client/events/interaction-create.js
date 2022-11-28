@@ -16,6 +16,9 @@ class InteractionCreateEvent extends BaseEvent {
 		},
 		MENUS: {
 
+		},
+		AUTOCOMPLETE: {
+
 		}
 	}
 
@@ -45,7 +48,7 @@ class InteractionCreateEvent extends BaseEvent {
 		}
 	}
 
-	#FOLDERS = [ 'buttons', 'menus', 'modals' ]
+	#FOLDERS = [ 'buttons', 'menus', 'modals', 'autocomplete' ]
 
 	constructor (options) {
 		super(options)
@@ -67,6 +70,8 @@ class InteractionCreateEvent extends BaseEvent {
 				return 'MENUS'
 			case interaction.isModalSubmit():
 				return 'MODALS'
+			case interaction.isAutocomplete():
+				return 'AUTOCOMPLETE'
 			default:
 				return undefined
 		}
@@ -90,7 +95,7 @@ class InteractionCreateEvent extends BaseEvent {
 				)
 		)
 
-		const [ buttonComponents, menuComponents, modalComponents ] = components.map(v => {
+		const [ buttonComponents, menuComponents, modalComponents, autocompleteComponents ] = components.map(v => {
 			const [ rejectedComponents, fulfilledComponents ] = [
 				v.filter(({ status, value }) => status === 'rejected' || !(value instanceof BaseComponent)),
 				v.filter(({ status, value }) => status === 'fulfilled' && value instanceof BaseComponent)
@@ -107,6 +112,7 @@ class InteractionCreateEvent extends BaseEvent {
 		menuComponents.forEach(({ customId, ...tail }) => this.INTERACTIONS_X_HANDLERS.MENUS[customId] = tail) // eslint-disable-line
 		modalComponents.forEach(({ customId, ...tail }) => this.INTERACTIONS_X_HANDLERS.MODALS[customId] = tail) // eslint-disable-line
 		buttonComponents.forEach(({ customId, ...tail }) => this.INTERACTIONS_X_HANDLERS.BUTTONS[customId] = tail) // eslint-disable-line
+		autocompleteComponents.forEach(({ customId, ...tail }) => this.INTERACTIONS_X_HANDLERS.AUTOCOMPLETE[customId] = tail) // eslint-disable-line
 	}
 
 	async executeCommand (interaction) {
