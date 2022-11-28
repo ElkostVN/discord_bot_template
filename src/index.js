@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import { createDiscordClient } from '#lib/utils/create-discord-client'
+import { createDiscordClient } from '#lib/utils/create-discord-client.js'
 
 async function main () {
 	console.clear()
@@ -8,5 +8,5 @@ async function main () {
 	await createDiscordClient()
 }
 
-await main()
-	.catch(e => console.error(e))
+main()
+	.catch(console.error)

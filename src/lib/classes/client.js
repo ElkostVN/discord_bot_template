@@ -1,67 +1,81 @@
 import { access, readdir } from 'node:fs/promises'
 import { Client as DiscordClient, Collection } from 'discord.js'
 
+import { BaseEvent } from '#lib/classes/base-event.js'
+import { BaseCommand } from '#lib/classes/base-command.js'
+
 export class Client extends DiscordClient {
 	constructor (params) {
 		super(params)
 		this.commands = new Collection()
-		this.contextMenus = new Collection()
+		this.menus = new Collection()
 	}
 
 	async isFolderExists (folder) {
-		return access(`src/controllers/${folder}`).then(() => true).catch(() => false) // eslint-disable-line
+		return access(`src/client/${folder}`).then(() => true).catch(() => false) // eslint-disable-line
 	}
 
 	async importFiles (folder) {
-		return Promise.all((await readdir(`src/controllers/${folder}`)).map(v => import(`#src/controllers/${folder}/${v}`)))
+		return (await Promise.all(
+			(await readdir(`src/client/${folder}`))
+				.map(v => import(`#src/client/${folder}/${v}`)
+					.then(r => Object.keys(r).map(v => r[v])) // eslint-disable-line
+				)
+		)).flat()
 	}
 
 	async setEventControllers () {
-		if (!await this.isFolderExists('events')) return
-		const events = await this.importFiles('events').then(res => res.map(v => Object.keys(v).map(r => v[r])).flat(Infinity))
+		if (!await this.isFolderExists('events'))
+			throw new Error('Events folder dosn\'t exist')
 
-		events.forEach(v => {
-			if (!v.name || !v.controller)
-				throw new Error(`Error installing the event controller, check your event: ${v}`)
+		return Promise.all((await this.importFiles('events'))
+			.map(async v => {
+				if (!(v instanceof BaseEvent))
+					throw new Error(`${v.constructor.name} isn't instance of BaseEvent`)
 
-			if (v.once)
-				return this.once(v.name, async (...args) => v.controller(...args).catch(e => console.error(e))) // eslint-disable-line
+				if (!v.validateFilds())
+					throw new Error(`Required fields are missing in ${v.constructor.name}, list of required fields: [${v.required}]`)
 
-			return this.on(v.name, async (...args) => v.controller(...args).catch(e => console.error(e))) // eslint-disable-line
-		})
+				await v.loadComponents()
+
+				return v.once
+					? this.once(v.name, async (...args) => v.controller(...args).catch(console.error)) // eslint-disable-line
+					: this.on(v.name, async (...args) => v.controller(...args).catch(console.error)) // eslint-disable-line
+			}))
 	}
 
 	async setClientCommands () {
-		const commands = (await this.importFiles('commands').then(res => res.map(v => Object.keys(v).map(r => v[r])).flat(Infinity)))
-			.map(v => {
-				if (!v.name || !v.controller)
-					throw new Error(`Error installing the command controller, check your command: ${v}`)
+		if (!await this.isFolderExists('commands'))
+			throw new Error('Commands folder dosn\'t exist')
 
-				if (v.name !== v.data.name)
-					throw new Error('Error installing the command controller, name of the context menu does not match the name for the api')
+		return Promise.all((await this.importFiles('commands'))
+			.map(v => {
+				if (!(v instanceof BaseCommand))
+					throw new Error(`${v.constructor.name} isn't instance of BaseCommand`)
+
+				if (!v.validateFilds())
+					throw new Error(`Required fields are missing in ${v.constructor.name}, list of required fields: [${v.required}]`)
 
 				this.commands.set(v.name, v.controller)
-				return { data: v.data.toJSON(), guildId: v.guildId }
-			})
-
-		await this.application.commands.set([])
-		return Object.keys(commands).forEach(i => this.application.commands.create(commands[i].data, commands[i].guildId))
+				return this.application.commands.create(v.data.toJSON(), v.guildId)
+			}))
 	}
 
-	async setClientContextMenus () {
-		const contextMenus = (await this.importFiles('context-menus').then(res => res.map(v => Object.keys(v).map(r => v[r])).flat(Infinity)))
+	async setClientMenus () {
+		if (!await this.isFolderExists('menus'))
+			throw new Error('Menus folder dosn\'t exist')
+
+		return Promise.all((await this.importFiles('menus'))
 			.map(v => {
-				if (!v.name || !v.controller)
-					throw new Error(`Error installing the context menu controller, check your menu: ${v}`)
+				if (!(v instanceof BaseCommand))
+					throw new Error(`${v.constructor.name} isn't instance of BaseCommand`)
 
-				if (v.name !== v.data.name)
-					throw new Error('Error installing the context menu controller, name of the context menu does not match the name for the api')
+				if (!v.validateFilds())
+					throw new Error(`Required fields are missing in ${v.constructor.name}, list of required fields: [${v.required}]`)
 
-				this.contextMenus.set(v.name, v.controller)
-
-				return { data: v.data.toJSON(), guildId: v.guildId }
-			})
-		return Object.keys(contextMenus).forEach(i => this.application.commands.create(contextMenus[i].data, contextMenus[i].guildId))
+				this.menus.set(v.name, v.controller)
+				return this.application.commands.create(v.data.toJSON(), v.guildId)
+			}))
 	}
 
 	static defaultIntents = [

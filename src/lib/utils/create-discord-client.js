@@ -1,4 +1,4 @@
-import { Client } from '#lib/classes/client'
+import { Client } from '#lib/classes/client.js'
 
 export async function createDiscordClient () {
 	const { default: config } = await import('#configs/client.json', { assert: { type: 'json' } })
@@ -13,5 +13,5 @@ export async function createDiscordClient () {
 	await client.login(process.env.DISCORD_BOT_TOKEN)
 
 	await client.setClientCommands()
-	await client.setClientContextMenus()
+	await client.setClientMenus()
 }

@@ -1,6 +1,6 @@
 import { ApplicationCommandType, ContextMenuCommandBuilder } from 'discord.js'
 
-import { BaseCommand } from '#lib/classes/base-command'
+import { BaseCommand } from '#lib/classes/base-command.js'
 
 export default new BaseCommand({
 	data: new ContextMenuCommandBuilder()
@@ -8,5 +8,5 @@ export default new BaseCommand({
 		.setType(ApplicationCommandType.Message),
 	name: 'test-menu',
 	guildId: null,
-	controller: async interaction => interaction.editReply({ content: 'Context Menu Interaction' })
+	controller: async interaction => interaction.reply({ content: 'Context Menu Interaction' })
 })

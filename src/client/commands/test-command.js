@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, SlashCommandBuilder } from 'discord.js'
 
-import { BaseCommand } from '#lib/classes/base-command'
+import { BaseCommand } from '#lib/classes/base-command.js'
 
 export default new BaseCommand({
 	data: new SlashCommandBuilder()
@@ -8,7 +8,7 @@ export default new BaseCommand({
 		.setDescription('test command'),
 	name: 'test-command',
 	guildId: null,
-	controller: async interaction => interaction.editReply({
+	controller: async interaction => interaction.reply({
 		content: 'test button',
 		components: [
 			new ActionRowBuilder()
