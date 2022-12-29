@@ -3,8 +3,9 @@ module.exports = {
 		'node': true,
 		'es2022': true
 	},
-	'extends': [ 'eslint:recommended', 'plugin:promise/recommended' ],
-	'parser': '@babel/eslint-parser',
+	'plugins': [ 'promise', '@typescript-eslint' ],
+	'extends': [ 'eslint:recommended', 'plugin:@typescript-eslint/eslint-recommended', 'plugin:@typescript-eslint/recommended', 'plugin:promise/recommended' ],
+	'parser': '@typescript-eslint/parser',
 	'parserOptions': {
 		'ecmaVersion': 'latest',
 		'sourceType': 'module',
@@ -19,7 +20,6 @@ module.exports = {
 		'Atomics': 'readonly',
 		'SharedArrayBuffer': 'readonly'
 	},
-	'plugins': ['promise'],
 	'rules': {
 		'indent': [
 			'error',
@@ -233,13 +233,19 @@ module.exports = {
 			'error'
 		],
 		'promise/prefer-await-to-then': [
-			'error'
+			'off'
 		],
 		'promise/prefer-await-to-callbacks': [
 			'error'
 		],
 		'promise/no-new-statics': [
 			'error'
+		],
+		'@typescript-eslint/no-non-null-assertion': [
+			'off'
+		],
+		'@typescript-eslint/ban-ts-comment': [
+			'off'
 		]
 	}
 }
