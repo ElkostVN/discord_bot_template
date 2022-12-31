@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { ChatInputCommand } from '#core/entities/ChatInputCommand.js'
 
 export default new ChatInputCommand({
-	name: 'test-command',
+	name: 'best-command',
 	data: new SlashCommandBuilder()
 		.setName('best-command')
 		.setDescription('best-command'),

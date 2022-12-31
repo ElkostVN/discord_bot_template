@@ -1,7 +1,6 @@
 import { ApplicationCommand, ClientOptions, Collection, Client as DiscordClient } from 'discord.js'
 
 import { IMenu } from '#src/lib/interfaces/IMenu.js'
-import { IEvent } from '#lib/interfaces/IEvent.js'
 import { IClient } from '#lib/interfaces/IClient.js'
 import { ICommand } from '#lib/interfaces/ICommand.js'
 import { MenusHandler } from '#core/entities/MenusHandler.js'
@@ -32,9 +31,14 @@ export class Client extends DiscordClient<true> implements IClient {
 	}
 
 	public async initializeEventInteractors (): Promise<void> {
-		const events: IEvent[] = await this._eventsHandler.importFiles()
-		// @ts-ignore
-		events.forEach((v: IEvent): this => this[v.mode](v.name, (...args) => v.interactor(...args).catch(console.error)))
+		const events: unknown[] = await this._eventsHandler.importFiles()
+		await Promise.all(events.map(v => {
+			// @ts-ignore
+			this[v.mode](v.name, (...args) => v.interactor(...args).catch(console.error))
+
+			// @ts-ignore
+			return v.uploadResolvers()
+		}))
 	}
 
 	public async initializeCommandInteractors (): Promise<void> {
